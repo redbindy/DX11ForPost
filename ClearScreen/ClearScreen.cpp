@@ -5,6 +5,7 @@
 #include <dxgi.h>
 
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
 
 // 디버깅용 정적 콘솔 연결
 #pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
@@ -234,6 +235,7 @@ void DestroyD3D11()
 
 	if (spDeviceContext != nullptr)
 	{
+		spDeviceContext->ClearState();
 		spDeviceContext->Release();
 		spDeviceContext = nullptr;
 	}

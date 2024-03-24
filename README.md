@@ -8,3 +8,4 @@ DirectX11 구 튜토리얼 정리용 샘플 코드
 
 # 참고자료 및 출처
 - [directx-sdk-samples](https://github.com/walbourn/directx-sdk-samples)
+- [Table of Color](https://www.farb-tabelle.de/en/table-of-color.htm)
