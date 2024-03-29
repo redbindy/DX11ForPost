@@ -139,6 +139,10 @@ static ID3D11Device* spDevice;
 static ID3D11DeviceContext* spDeviceContext;
 static IDXGISwapChain* spSwapChain;
 static ID3D11RenderTargetView* spRenderTargetView;
+
+// VertexShader: 정점 쉐이더 리소스 인터페이스
+// PixelShader: 픽셀 쉐이더 리소스 인터페이스
+// VertexBuffer: 정점 버퍼 리소스 인터페이스
 static ID3D11VertexShader* spVertexShader;
 static ID3D11PixelShader* spPixelShader;
 static ID3D11Buffer* spVertexBuffer;
