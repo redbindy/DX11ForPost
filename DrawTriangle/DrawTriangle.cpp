@@ -143,9 +143,11 @@ static ID3D11RenderTargetView* spRenderTargetView;
 // VertexShader: 정점 쉐이더 리소스 인터페이스
 // PixelShader: 픽셀 쉐이더 리소스 인터페이스
 // VertexBuffer: 정점 버퍼 리소스 인터페이스
+// IndexBuffer: 인덱스 버퍼 리소스 인터페이스
 static ID3D11VertexShader* spVertexShader;
 static ID3D11PixelShader* spPixelShader;
 static ID3D11Buffer* spVertexBuffer;
+static ID3D11Buffer* spIndexBuffer;
 
 void InitializeD3D11()
 {
@@ -372,10 +374,53 @@ void InitializeD3D11()
 
 	// 삼각형 그리는 방법 설정
 	spDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 인덱스 데이터 정의
+	WORD indice[3] = {
+		0, 1, 2
+	};
+
+	// 인덱스 버퍼에 대한 정보 구조체 초기화
+	D3D11_BUFFER_DESC indexBufferDesc;
+
+	indexBufferDesc.ByteWidth = sizeof(indice); // 버퍼의 바이트 크기
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT; // 버퍼의 용도
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER; // 파이프라인에 뭘로 바인딩 할지
+	indexBufferDesc.CPUAccessFlags = 0; // CPU의 접근 권한
+	indexBufferDesc.MiscFlags = 0; // 리소스에 대한 옵션
+	indexBufferDesc.StructureByteStride = sizeof(WORD); // 각 요소별 바이트 크기
+
+	// 초기화할 인덱스 버퍼 서브리소스 구조체
+	D3D11_SUBRESOURCE_DATA indexSubresource;
+
+	indexSubresource.pSysMem = indice; // 전송할 데이터 포인터
+	indexSubresource.SysMemPitch = 0; // 다음 행으로 가기 위한 시스템 바이트 수
+	indexSubresource.SysMemSlicePitch = 0; // 다음 면으로 가기 위한 시스템 바이트 수
+
+	// 인덱스 버퍼 생성
+	hr = spDevice->CreateBuffer(
+		&indexBufferDesc, // 버퍼 정보 구조체 포인터
+		&indexSubresource, // 인덱스 서브 리소스 포인터
+		&spIndexBuffer // 만들어진 버퍼 리소스 포인터를 받을 주소
+	);
+	assert(SUCCEEDED(hr));
+
+	// 파이프라인에 인덱스 버퍼 설정
+	spDeviceContext->IASetIndexBuffer(
+		spIndexBuffer, // 설정할 인덱스 버퍼 포인터
+		DXGI_FORMAT_R16_UINT, // 인덱스 버퍼의 형식
+		0 // 시작 오프셋
+	);
 }
 
 void DestroyD3D11()
 {
+	if (spIndexBuffer != nullptr)
+	{
+		spIndexBuffer->Release();
+		spIndexBuffer = nullptr;
+	}
+
 	if (spVertexBuffer != nullptr)
 	{
 		spVertexBuffer->Release();
@@ -444,9 +489,15 @@ void Render()
 	);
 
 	// 정점 그리기
-	spDeviceContext->Draw(
-		3, // 정점의 수
-		0 // 시작 오프셋
+	//spDeviceContext->Draw(
+	//	3, // 정점의 수
+	//	0 // 시작 오프셋
+	//);
+
+	spDeviceContext->DrawIndexed(
+		3, // 그릴 인덱스의 수
+		0, // 첫 인덱스를 읽을 위치
+		0 // 정점 버퍼로부터 정점을 읽기 전에 각 인덱스에 더할 값
 	);
 
 	spSwapChain->Present(
