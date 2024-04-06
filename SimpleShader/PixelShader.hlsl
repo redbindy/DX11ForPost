@@ -1,7 +1,4 @@
-cbuffer ConstantBuffer : register(b0)
-{
-    float4x4 transform;
-}
+#include "ShaderHeader.hlsli"
 
 float4 main(float4 pos : SV_Position) : SV_TARGET
 {

@@ -258,7 +258,7 @@ void InitializeD3D11()
 	hr = D3DCompileFromFile(
 		TEXT("VertexShader.hlsl"), // 쉐이더 코드 파일 이름
 		nullptr, // 쉐이더 매크로를 정의하는 구조체 포인터
-		nullptr, // 쉐이더 컴파일러가 include 파일 처리에 사용하는 인터페이스 포인터
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, // 쉐이더 컴파일러가 include 파일 처리에 사용하는 인터페이스 포인터
 		"main", // 진입점 이름
 		"vs_5_0", // 컴파일 대상
 		0, // 컴파일 옵션
@@ -281,7 +281,7 @@ void InitializeD3D11()
 	hr = D3DCompileFromFile(
 		TEXT("PixelShader.hlsl"), // 쉐이더 코드 파일 이름
 		nullptr, // 쉐이더 매크로를 정의하는 구조체 포인터
-		nullptr, // 쉐이더 컴파일러가 include 파일 처리에 사용하는 인터페이스 포인터
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, // 쉐이더 컴파일러가 include 파일 처리에 사용하는 인터페이스 포인터
 		"main", // 진입점 이름
 		"ps_5_0", // 컴파일 대상
 		0, // 컴파일 옵션
@@ -557,7 +557,7 @@ void Render()
 		spConstantBuffer, // 업데이트할 서브리소스 포인터
 		0, // 업데이트할 서브리소스 번호
 		nullptr, // 서브리소스 선택 박스 포인터
-		&trTransform,
+		&trTransform, // 업데이트에 사용할 데이터
 		0, // 다음 행까지의 시스템 메모리 바이트 수
 		0 // 다음 깊이까지의 시스템 메모리 바이트 수
 	);
