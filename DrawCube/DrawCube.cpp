@@ -357,14 +357,14 @@ void InitializeD3D11()
 	pVertexLayout = nullptr;
 
 	// 전송할 정점 배열
-	vertex_t vertices[] = {
-		{ { 1.f, 1.f, -1.f }, { 0.f, 0.f, 0.f, 1.f} }, 
-		{ { 1.f, -1.f, -1.f }, { 1.f, 0.f, 0.f, 1.f} }, 
-		{ { -1.f, 1.f, -1.f }, { 0.f, 1.f, 0.f, 1.f} }, 
-		{ { -1.f, -1.f, -1.f }, { 0.f, 0.f, 1.f, 1.f} }, 
-		{ { 1.f, 1.f, 1.f }, { 1.f, 1.f, 0.f, 1.f} }, 
-		{ { 1.f, -1.f, 1.f }, { 1.f, 0.f, 1.f, 1.f} }, 
-		{ { -1.f, 1.f, 1.f }, { 0.f, 1.f, 1.f, 1.f} }, 
+	vertex_t vertices[8] = {
+		{ { 1.f, 1.f, -1.f }, { 0.f, 0.f, 0.f, 1.f} },
+		{ { 1.f, -1.f, -1.f }, { 1.f, 0.f, 0.f, 1.f} },
+		{ { -1.f, 1.f, -1.f }, { 0.f, 1.f, 0.f, 1.f} },
+		{ { -1.f, -1.f, -1.f }, { 0.f, 0.f, 1.f, 1.f} },
+		{ { 1.f, 1.f, 1.f }, { 1.f, 1.f, 0.f, 1.f} },
+		{ { 1.f, -1.f, 1.f }, { 1.f, 0.f, 1.f, 1.f} },
+		{ { -1.f, 1.f, 1.f }, { 0.f, 1.f, 1.f, 1.f} },
 		{ { -1.f, -1.f, 1.f }, { 1.f, 1.f, 1.f, 1.f} }
 	};
 
@@ -409,21 +409,21 @@ void InitializeD3D11()
 	spDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// 인덱스 데이터 정의
-	WORD indice[] = {
+	WORD indice[36] = {
 		2, 0, 1, // 정면
-		2, 1, 3, 
+		2, 1, 3,
 
 		0, 4, 5, // 우측
-		5, 1, 0, 
+		5, 1, 0,
 
 		4, 6, 7, // 뒷면
-		7, 5, 4, 
+		7, 5, 4,
 
 		3, 7, 6, // 좌측
-		6, 2, 3, 
+		6, 2, 3,
 
 		2, 6, 4, // 윗면
-		4, 0, 2, 
+		4, 0, 2,
 
 		3, 1, 5, // 아랫면
 		5, 7, 3
@@ -464,6 +464,32 @@ void InitializeD3D11()
 	// 회전에 사용할 변수 초기화
 	sConstantBuffer.transfrom = XMMatrixIdentity();
 
+	// 월드 변환 행렬 초기화
+	sConstantBuffer.world = XMMatrixIdentity();
+
+	// 뷰 변환 행렬 초기화
+	XMVECTOR eyePosition = XMVectorSet(0.f, 3.f, -5.f, 0.f);
+	XMVECTOR focusPosition = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+	XMVECTOR upDirection = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+	
+	sConstantBuffer.view = XMMatrixLookAtLH(
+		eyePosition, // 눈(= 카메라)의 위치
+		focusPosition, // 초점의 위치(= 시선의 위치)
+		upDirection // 카메라의 위쪽 방향
+	);
+
+	sConstantBuffer.view = XMMatrixTranspose(sConstantBuffer.view);
+
+	// 투영 변환 행렬 초기화
+	sConstantBuffer.projection = XMMatrixPerspectiveFovLH(
+		XM_PIDIV2, // 하양식 시야각(= y축과 평행한 시야각)
+		windowRect.right / (float)windowRect.bottom, // 종횡비 비율 값 = 너비 / 높이
+		0.01f, // 절두체 근평면의 위치
+		100.f // 절두체 원평면의 위치
+	);
+
+	sConstantBuffer.projection = XMMatrixTranspose(sConstantBuffer.projection);
+
 	// 상수 버퍼에 대한 정보 구조체 초기화
 	D3D11_BUFFER_DESC constantBufferDesc;
 
@@ -472,7 +498,7 @@ void InitializeD3D11()
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER; // 파이프라인에 뭘로 바인딩 할지
 	constantBufferDesc.CPUAccessFlags = 0; // CPU의 접근 권한
 	constantBufferDesc.MiscFlags = 0; // 리소스에 대한 옵션
-	constantBufferDesc.StructureByteStride = sizeof(sConstantBuffer.transfrom); // 각 요소별 바이트 크기
+	constantBufferDesc.StructureByteStride = sizeof(XMMATRIX); // 각 요소별 바이트 크기
 
 	// 초기화할 상수 버퍼 서브리소스 구조체
 	D3D11_SUBRESOURCE_DATA constantBufferSubresource;
@@ -583,18 +609,23 @@ void Render()
 		0 // 배열의 길이
 	);
 
+	// 회전 행렬용 정적 각도 값
+	const float DELTA_THETA = XM_PI / 36;
+	static float theta = 0;
+
+	theta += DELTA_THETA;
 	// 다음 변환 가중치 계산
-	sConstantBuffer.transfrom *= XMMatrixRotationZ(XM_PI / 36);
+	sConstantBuffer.transfrom = XMMatrixRotationY(theta);
 
 	// HLSL 계산 방식으로 인한 전치
-	XMMATRIX trTransform = XMMatrixTranspose(sConstantBuffer.transfrom);
+	sConstantBuffer.transfrom = XMMatrixTranspose(sConstantBuffer.transfrom);
 
 	// 바인딩한 리소스 업데이트
 	spDeviceContext->UpdateSubresource(
 		spConstantBuffer, // 업데이트할 서브리소스 포인터
 		0, // 업데이트할 서브리소스 번호
 		nullptr, // 서브리소스 선택 박스 포인터
-		&trTransform, // 업데이트에 사용할 데이터
+		&sConstantBuffer, // 업데이트에 사용할 데이터
 		0, // 다음 행까지의 시스템 메모리 바이트 수
 		0 // 다음 깊이까지의 시스템 메모리 바이트 수
 	);

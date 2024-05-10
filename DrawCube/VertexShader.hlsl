@@ -8,10 +8,12 @@ struct VS_INPUT
 
 VS_OUTPUT main(VS_INPUT input)
 {   
-    VS_OUTPUT output;
-    output.pos = input.pos;
-    // output.pos = mul(input.pos, transform);
-    output.color = input.color;
+    float4x4 mat = mul(transform, world);
+    mat = mul(mat, view);
+    mat = mul(mat, projection);
+
+    VS_OUTPUT output = input;
+    output.pos = mul(output.pos, mat);
     
     return output;
 }
