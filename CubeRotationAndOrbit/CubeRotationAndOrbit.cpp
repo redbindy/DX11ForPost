@@ -707,6 +707,7 @@ void Render()
 		0.5f // z축 방향 확대/축소 값
 	);
 
+	// XMMATRIX rotationOrbitCube = XMMatrixRotationY(theta);
 	XMMATRIX rotationOrbitCube = XMMatrixRotationY(theta * 2.f);
 
 	XMMATRIX translationTransform = XMMatrixTranslation(
@@ -718,6 +719,8 @@ void Render()
 	XMMATRIX orbitTransform = XMMatrixRotationY(-theta);
 
 	constantBufferForOrbitCube.transfrom = XMMatrixTranspose(scaleTransform * rotationOrbitCube * translationTransform * orbitTransform);
+	// constantBufferForOrbitCube.transfrom = XMMatrixTranspose(scaleTransform * rotationOrbitCube * translationTransform * orbitTransform * scaleTransform);
+	// constantBufferForOrbitCube.transfrom = XMMatrixTranspose(scaleTransform * rotationOrbitCube * translationTransform * orbitTransform * translationTransform);
 
 	// 바인딩한 리소스 업데이트
 	spDeviceContext->UpdateSubresource(
